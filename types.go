@@ -16,6 +16,7 @@ const (
 	// Variable length character data.
 	VarChar = "varchar"
 
+	ObjectId = "ObjectId"
 	// Variable length binary data.
 	VarBinary = "varbinary"
 

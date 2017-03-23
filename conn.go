@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding/json"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
@@ -212,7 +213,8 @@ func (r *rows) fetch() error {
 					r.types[i] = timestampConverter
 				case col.Type == TimestampWithTimezone:
 					r.types[i] = timestampWithTimezoneConverter
-
+				case col.Type == ObjectId:
+					r.types[i] = objectIdConverter
 				default:
 					return fmt.Errorf("unsupported column type: %s", col.Type)
 				}
@@ -383,6 +385,22 @@ var timestampConverter = valueConverterFunc(func(val interface{}) (driver.Value,
 		// BUG: should parse using session time zone.
 		if ts, err := time.ParseInLocation(TimestampFormat, vv, time.Local); err == nil {
 			return ts, nil
+		}
+	}
+	return nil, fmt.Errorf("%s: failed to convert %v (%T) into type time.Time", DriverName, val, val)
+})
+
+// objectIdConverter converts a value from the underlying json response into a objectid hex string.
+var objectIdConverter = valueConverterFunc(func(val interface{}) (driver.Value, error) {
+	if val == nil {
+		return nil, nil
+	}
+	if vv, ok := val.(string); ok {
+		data, err := base64.StdEncoding.DecodeString(vv)
+		if err != nil {
+			return nil, fmt.Errorf("%s: failed to convert %v into type objectId hex string", DriverName, val)
+		}else{
+			return data,nil
 		}
 	}
 	return nil, fmt.Errorf("%s: failed to convert %v (%T) into type time.Time", DriverName, val, val)

@@ -399,8 +399,8 @@ var objectIdConverter = valueConverterFunc(func(val interface{}) (driver.Value, 
 		data, err := base64.StdEncoding.DecodeString(vv)
 		if err != nil {
 			return nil, fmt.Errorf("%s: failed to convert %v into type objectId hex string", DriverName, val)
-		}else{
-			return data,nil
+		} else {
+			return fmt.Sprintf("%x", data), nil
 		}
 	}
 	return nil, fmt.Errorf("%s: failed to convert %v (%T) into type time.Time", DriverName, val, val)
